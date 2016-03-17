@@ -66,6 +66,8 @@ public class MainActivity extends AppCompatActivity {
                        mPlayerService.pause();
                        mPlayButton.setText("Play");
                    } else {
+                       Intent intent = new Intent(MainActivity.this, PlayerService.class);
+                       startService(intent);
                        mPlayerService.play();
                        mPlayButton.setText("Pause");
                    }

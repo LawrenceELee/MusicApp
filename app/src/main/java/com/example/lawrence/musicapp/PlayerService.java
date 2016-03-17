@@ -1,6 +1,7 @@
 package com.example.lawrence.musicapp;
 
 import android.app.Service;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.media.MediaPlayer;
 import android.os.Binder;
@@ -38,6 +39,18 @@ public class PlayerService extends Service {
     public void onDestroy() {
         Log.d(TAG, "onDestroy");
         mPlayer.release();
+    }
+
+    public int onStartCommand(Intent service) {
+
+        mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener(){
+            @Override
+            public void onCompletion(MediaPlayer mediaPlayer) {
+                stopSelf();
+            }
+        });
+
+        return Service.START_NOT_STICKY;
     }
 
     // define a binder object/class needed to bind PlayerService with MainActivity

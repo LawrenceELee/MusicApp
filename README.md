@@ -47,3 +47,5 @@ Bound Service:
 
 You can also have a Service that is "Started" and "Bound", but lifecycle is a little more complicated.
 
+The music player app should be both a "Started" and "Bound" Service. Otherwise, if it were just a BoundService then the process will stop when the last client disconnects (when the back button is pressed).
+If it is hybrid of both, then when we press back the music will continue playing. And when we open/start the Activity again it will bind to the Service which is still running.
