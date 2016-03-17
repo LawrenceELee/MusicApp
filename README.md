@@ -25,4 +25,25 @@ Since Services is so common Android wrote a class IntentService for us to write 
 IntentService is for handling Intents one at a time on a separate thread.
 No longer need DownloadService, DownloadHandler, DownloadThread because DownloadIntentService handles all of that. But they are good for referencing.
 
-BoundService is ...
+BoundService is the second way to work with a service (the first is a started service IntentService). A BoundService is analogous to a server and the Activity binding to it is the client. Example, an app for music playback. Once the music player is started (Service), you can tell it to pause, stop, rewind, skip, etc.
+
+Lifecycle of a Service (simpler than lifecycle of Activity):
+Started Service:
+1) Call to startService()
+2) onCreate() called
+3) onStartedCommand() called
+4) Service is running
+5) onDestroy() called
+6) Service is shutdown
+
+Bound Service:
+1) call to bindService()
+2) onCreate() called
+3) onBind() called
+4) Clients are bound to a service
+5) onUnbind() called
+6) onDestroy() called
+7) Service is shutdown.
+
+You can also have a Service that is "Started" and "Bound", but lifecycle is a little more complicated.
+

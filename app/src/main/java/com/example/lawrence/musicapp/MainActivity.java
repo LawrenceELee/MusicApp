@@ -1,6 +1,10 @@
 package com.example.lawrence.musicapp;
 
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
+import android.os.IBinder;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -16,6 +20,30 @@ public class MainActivity extends AppCompatActivity {
 
     private Button mDownloadButton;
 
+    private Button mPlayButton;
+    private PlayerService mPlayerService;
+
+    private boolean mBound = false;
+    // ServiceConnection is a way for Android to connect a client and a service.
+    private ServiceConnection mServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder binder) {
+            mBound = true;
+            PlayerService.LocalBinder localBinder = (PlayerService.LocalBinder) binder;
+            mPlayerService = localBinder.getService();
+
+            // checks if music player was already playing
+            if( mPlayerService.isPlaying() ){
+                mPlayButton.setText("Pause");
+            }
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            mBound = false;
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -28,6 +56,24 @@ public class MainActivity extends AppCompatActivity {
         thread.start();
         */
 
+        // for "Play" button
+        mPlayButton = (Button) findViewById(R.id.playButton);
+        mPlayButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if( mBound ) {
+                   if( mPlayerService.isPlaying() ) {
+                       mPlayerService.pause();
+                       mPlayButton.setText("Play");
+                   } else {
+                       mPlayerService.play();
+                       mPlayButton.setText("Pause");
+                   }
+                }
+            }
+        });
+
+        // for "Download" button
         mDownloadButton = (Button) findViewById(R.id.downloadButton);
         mDownloadButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -84,8 +130,24 @@ public class MainActivity extends AppCompatActivity {
                     intent.putExtra(KEY_SONG, song);
                     startService(intent);
                 }
-
             }
         });
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Intent intent = new Intent(this, PlayerService.class);
+        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        if( mBound ) {
+            unbindService(mServiceConnection);
+            mBound = false;
+        }
     }
 }
