@@ -1,5 +1,6 @@
 package com.example.lawrence.musicapp;
 
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -18,8 +19,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mDownloadButton = (Button) findViewById(R.id.downloadButton);
+        final DownloadThread thread = new DownloadThread();
+        thread.setName("DownloadThread");
+        thread.start();
 
+        mDownloadButton = (Button) findViewById(R.id.downloadButton);
         mDownloadButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -38,10 +42,28 @@ public class MainActivity extends AppCompatActivity {
                 Thread thread = new Thread(runnable);
                 */
 
+                /*
+                // moved out outside the click listener.
                 // alternate way by extending Thread class to our own DownloadThread class.
                 DownloadThread thread = new DownloadThread();
                 thread.setName("DownloadThread");
                 thread.start();
+                */
+
+                // Send Messages (or Runnables) to Handler for processing
+                // because of the nature of threads, you don't know if thread.start() will create the handler (in run())
+                // before the main ui thread sends messages or runnables to that thread.
+                // this will cause a NullPointerException.
+                // The solution to this is to start() the thread when the Activity is created, not in the OnClickListener.
+
+                // give our handler a bunch of song titles knowing that it can handle them by itself.
+                // instead of creating a runnable for each song and specific how to download it.
+                for( String song : Playlist.songs ) {
+                    Message message = Message.obtain(); // get a messsage object from pool
+                    message.obj = song;                 // attach song obj to message
+                    thread.mHandler.sendMessage(message);
+                }
+
             }
         });
     }
