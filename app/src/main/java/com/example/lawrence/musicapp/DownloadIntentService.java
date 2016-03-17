@@ -1,18 +1,26 @@
 package com.example.lawrence.musicapp;
 
-import android.os.Message;
-import android.os.Handler;
+import android.app.IntentService;
+import android.content.Intent;
 import android.util.Log;
 
-public class DownloadHandler extends Handler{
+// Android made writing services easier by providing the IntentService class
+public class DownloadIntentService extends IntentService{
 
-    private static final String TAG = DownloadHandler.class.getSimpleName();
-    private DownloadService mService;
+    private static final String TAG = DownloadIntentService.class.getSimpleName();
+
+    public DownloadIntentService(){
+        super("DownloadIntentService");
+
+        // by default services starts using START_STICKY.
+        // we can change the return value of onStartCommand to START_REDELIEVER_INTENT below.
+        setIntentRedelivery(true);
+    }
 
     @Override
-    public void handleMessage(Message msg) {
-        downloadSong(msg.obj.toString());
-        mService.stopSelf(msg.arg1);
+    protected void onHandleIntent(Intent intent) {
+        String song = intent.getStringExtra(MainActivity.KEY_SONG);
+        downloadSong(song);
     }
 
     // pretend to download a song by simulating the time it takes to download a song.
@@ -29,9 +37,5 @@ public class DownloadHandler extends Handler{
             }
         }
         Log.d(TAG, songName + " downloaded!");
-    }
-
-    public void setService(DownloadService service) {
-        mService = service;
     }
 }

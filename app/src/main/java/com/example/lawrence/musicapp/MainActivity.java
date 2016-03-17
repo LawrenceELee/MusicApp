@@ -1,5 +1,6 @@
 package com.example.lawrence.musicapp;
 
+import android.content.Intent;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -11,6 +12,7 @@ import android.widget.Toast;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
+    public static final String KEY_SONG = "song";
 
     private Button mDownloadButton;
 
@@ -19,9 +21,12 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        /*
+        // code for starting a thread. not need anymore since we refactor into a service.
         final DownloadThread thread = new DownloadThread();
         thread.setName("DownloadThread");
         thread.start();
+        */
 
         mDownloadButton = (Button) findViewById(R.id.downloadButton);
         mDownloadButton.setOnClickListener(new View.OnClickListener() {
@@ -59,9 +64,25 @@ public class MainActivity extends AppCompatActivity {
                 // give our handler a bunch of song titles knowing that it can handle them by itself.
                 // instead of creating a runnable for each song and specific how to download it.
                 for( String song : Playlist.songs ) {
+
+                    /*
+                    // code for sending a message. not need anymore since we refactor into a service.
                     Message message = Message.obtain(); // get a messsage object from pool
                     message.obj = song;                 // attach song obj to message
                     thread.mHandler.sendMessage(message);
+                    */
+
+                    /*
+                    // code to start a Service
+                    Intent intent = new Intent(MainActivity.this, DownloadService.class);
+                    intent.putExtra(KEY_SONG, song);
+                    startService(intent);
+                    */
+
+                    // code to start an IntentService
+                    Intent intent = new Intent(MainActivity.this, DownloadIntentService.class);
+                    intent.putExtra(KEY_SONG, song);
+                    startService(intent);
                 }
 
             }
