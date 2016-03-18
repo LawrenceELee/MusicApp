@@ -49,3 +49,17 @@ You can also have a Service that is "Started" and "Bound", but lifecycle is a li
 
 The music player app should be both a "Started" and "Bound" Service. Otherwise, if it were just a BoundService then the process will stop when the last client disconnects (when the back button is pressed).
 If it is hybrid of both, then when we press back the music will continue playing. And when we open/start the Activity again it will bind to the Service which is still running.
+
+A Process can be thought of as a group of threads. By default each app runs in it's own process. The main UI thread is part of this process as well as any new threads that the process creates. Some apps run on multiple processes. For example, a music player might run on 2 processes: one for the activity and one for the process. This way it doubles the access to memory (since each process is restricted to the amount of memory they can use). Furthermore, you might want to listen to the music in the background and the Activity might no longer be visible in the foreground. Android can then re-allocate those resources of the current foreground process. 
+
+How does Android pick which processes to kill?
+Order in highest priority (less likely to be killed) to lowest
+Foreground processes - processes that the user is current interacting with.
+Visibile processes - doesn't have any foreground components but can still affect what user sees (example: a paused activity)
+Services processes - running started service
+Background processes - if it isn't visible it is most likely a background process
+Empty processes - a process in which all the components have been destroyed, but kept around for caching purposes.
+
+By default apps have 1 proccess and 1 main thread. Don't use multiple processes unless you really have to because it can use up valuable resources.
+
+Messenger is a reference to a Handler. A Messenger can also transformed into a Binder and created from a Binder.

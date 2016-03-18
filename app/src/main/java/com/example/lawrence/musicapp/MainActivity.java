@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -21,7 +23,10 @@ public class MainActivity extends AppCompatActivity {
     private Button mDownloadButton;
 
     private Button mPlayButton;
-    private PlayerService mPlayerService;
+    //private PlayerService mPlayerService; // convert BoundService to process.
+
+    private Messenger mServiceMessenger;
+    private Messenger mActivityMessenger = new Messenger(new ActivityHandler(this));
 
     private boolean mBound = false;
     // ServiceConnection is a way for Android to connect a client and a service.
@@ -29,12 +34,25 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder binder) {
             mBound = true;
+            /*
+            // converted from BoundService to Process
             PlayerService.LocalBinder localBinder = (PlayerService.LocalBinder) binder;
             mPlayerService = localBinder.getService();
 
             // checks if music player was already playing
-            if( mPlayerService.isPlaying() ){
+            if (mPlayerService.isPlaying()) {
                 mPlayButton.setText("Pause");
+            }
+            */
+            mServiceMessenger = new Messenger(binder);
+            Message message = Message.obtain();
+            message.arg1 = 2;
+            message.arg2 = 1;
+            message.replyTo = mActivityMessenger;
+            try {
+                mServiceMessenger.send(message);
+            } catch (RemoteException e) {
+                e.printStackTrace();
             }
         }
 
@@ -61,16 +79,32 @@ public class MainActivity extends AppCompatActivity {
         mPlayButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if( mBound ) {
-                   if( mPlayerService.isPlaying() ) {
-                       mPlayerService.pause();
-                       mPlayButton.setText("Play");
-                   } else {
-                       Intent intent = new Intent(MainActivity.this, PlayerService.class);
-                       startService(intent);
-                       mPlayerService.play();
-                       mPlayButton.setText("Pause");
-                   }
+                if (mBound) {
+
+                    /*
+                    // converted from BoundService to Process
+                    if (mPlayerService.isPlaying()) {
+                        mPlayerService.pause();
+                        mPlayButton.setText("Play");
+                    } else {
+                        Intent intent = new Intent(MainActivity.this, PlayerService.class);
+                        startService(intent);
+                        mPlayerService.play();
+                        mPlayButton.setText("Pause");
+                    }
+                    */
+
+                    Intent intent = new Intent(MainActivity.this, PlayerService.class);
+                    startService(intent);
+
+                    Message message = Message.obtain();
+                    message.arg1 = 2;
+                    message.replyTo = mActivityMessenger;
+                    try {
+                        mServiceMessenger.send(message);
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         });
@@ -111,7 +145,7 @@ public class MainActivity extends AppCompatActivity {
 
                 // give our handler a bunch of song titles knowing that it can handle them by itself.
                 // instead of creating a runnable for each song and specific how to download it.
-                for( String song : Playlist.songs ) {
+                for (String song : Playlist.songs) {
 
                     /*
                     // code for sending a message. not need anymore since we refactor into a service.
@@ -136,6 +170,10 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    public void changePlayButtonText(String text) {
+        mPlayButton.setText(text);
+    }
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -147,7 +185,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
 
-        if( mBound ) {
+        if (mBound) {
             unbindService(mServiceConnection);
             mBound = false;
         }
